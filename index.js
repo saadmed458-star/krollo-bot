@@ -1,3 +1,14 @@
+import http from 'http';
+const port = process.env.PORT || 3000;
+
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.write("Krollo Bot is Alive! 🕸️");
+  res.end();
+}).listen(port, () => {
+  console.log(`Bypassing Render Timeout on port ${port}`);
+});
+
 import { fork } from 'child_process';
 import { join, dirname, resolve } from 'path';
 import fs from 'fs-extra';
