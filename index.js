@@ -1,14 +1,3 @@
-import http from 'http';
-const port = process.env.PORT || 3000;
-
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.write("Krollo Bot is Alive! 🕸️");
-  res.end();
-}).listen(port, () => {
-  console.log(`Bypassing Render Timeout on port ${port}`);
-});
-
 import { fork } from 'child_process';
 import { join, dirname, resolve } from 'path';
 import fs from 'fs-extra';
@@ -17,6 +6,17 @@ import * as accountUtils from './accounts/accountUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import http from 'http';
+
+// خدعة تجاوز نظام التوقف في Render
+const port = process.env.PORT || 3000;
+http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.write("Krollo Bot is Alive! 🕸️");
+    res.end();
+}).listen(port, () => {
+    console.log("\x1b[32m\x1b[1m✓ Bypassing Render Timeout on port " + port + "\x1b[0m");
+});
 
 const colors = {
     reset: "\x1b[0m",
