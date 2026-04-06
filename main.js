@@ -26,7 +26,7 @@ const errorFilePath = path.join(__dirname, 'node_modules', 'axios', 'errorMsg.tx
 
 const SECRET_KEY = crypto.createHash('sha256').update('jnd_secure_session_v1').digest();
 
-// --- دوال التشفير الأصلية الخاصة بك ---
+// --- أنظمة التشفير الأصلية ---
 function encryptText(text) {
   try {
     const iv = crypto.randomBytes(16);
@@ -51,7 +51,7 @@ function decryptTextSafe(text) {
   } catch (err) { return null; }
 }
 
-// --- نظام البصمة الرقمية الأصلي ---
+// --- نظام البصمة الرقمية ---
 function getSystemFingerprint() {
     try {
         const platform = os.platform();
@@ -111,36 +111,40 @@ export async function startBot() {
       syncFullHistory: false
     });
 
-    // --- تعديل منطق الربط ليكون آلياً (بدون حذف الميزات) ---
+    // --- منطق طلب كود الربط الآلي لـ Render ---
     if (!sock.authState.creds.registered) {
-      const phoneNumber = config?.pairing?.phone?.replace(/[^0-9]/g, '');
-      const pairingPassword = "ANASTASIA"; // الباسوورد الافتراضي لنظامك
+      // إصلاح خطأ الـ replace بتحويل الرقم إلى String أولاً
+      const phoneNumber = (config?.pairing?.phone || '').toString().replace(/[^0-9]/g, '');
+      const pairingPassword = "ANASTASIA"; 
 
       if (phoneNumber) {
+        console.log(chalk.yellow(`⏳ Requesting pairing code for: ${phoneNumber}`));
         setTimeout(async () => {
           try {
             const code = await sock.requestPairingCode(phoneNumber, pairingPassword);
             console.log('\x1b[30m\x1b[43m%s\x1b[0m', `\n\n كود الربط الخاص بك هو: ${code} \n`);
             
-            // حفظ ملف الباسوورد مشفراً كما في كودك الأصلي
             const securityData = JSON.stringify({ password: pairingPassword, fingerprint: getSystemFingerprint() });
             await fs.writeFile(passwordFile, encryptText(securityData));
           } catch (err) {
             console.log(chalk.red("❌ فشل طلب الكود: "), err.message);
           }
         }, 5000);
+      } else {
+          console.log(chalk.red("❌ لم يتم العثور على رقم هاتف في config.js!"));
       }
     }
 
     sock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect } = update;
       if (connection === 'open') {
-        logger.success?.(`CONNECTED! [${ACCOUNT_NAME}]`) || console.log("CONNECTED!");
+        if (logger) logger.success(`CONNECTED! [${ACCOUNT_NAME}]`);
         if(initializePlugins) await initializePlugins(themeData.themeColor);
       }
       if (connection === 'close') {
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         if (statusCode !== DisconnectReason.loggedOut) {
+            console.log(chalk.yellow("Connection closed. Reconnecting..."));
             setTimeout(startBot, 5000);
         }
       }
