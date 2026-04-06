@@ -26,7 +26,7 @@ const errorFilePath = path.join(__dirname, 'node_modules', 'axios', 'errorMsg.tx
 
 const SECRET_KEY = crypto.createHash('sha256').update('jnd_secure_session_v1').digest();
 
-// --- أنظمة التشفير الأصلية ---
+// --- أنظمة التشفير الأصلية الخاصة بك ---
 function encryptText(text) {
   try {
     const iv = crypto.randomBytes(16);
@@ -51,7 +51,7 @@ function decryptTextSafe(text) {
   } catch (err) { return null; }
 }
 
-// --- نظام البصمة الرقمية ---
+// --- نظام البصمة الرقمية الأصلي ---
 function getSystemFingerprint() {
     try {
         const platform = os.platform();
@@ -111,10 +111,11 @@ export async function startBot() {
       syncFullHistory: false
     });
 
-    // --- الحل النهائي لخطأ الـ TypeError ---
+    // --- الحل النهائي لخطأ TypeError (تحويل الرقم لنص) ---
     if (!sock.authState.creds.registered) {
-      // تحويل الرقم إلى String أولاً لتجنب مشكلة replace
-      const phoneNumber = (config?.pairing?.phone || '').toString().replace(/[^0-9]/g, '');
+      // هنا أضفت .toString() لإصلاح المشكلة التي ظهرت في سجلات Render
+      const rawPhone = config?.pairing?.phone || '';
+      const phoneNumber = rawPhone.toString().replace(/[^0-9]/g, '');
       const pairingPassword = "ANASTASIA"; 
 
       if (phoneNumber) {
@@ -131,7 +132,7 @@ export async function startBot() {
           }
         }, 5000);
       } else {
-          console.log(chalk.red("❌ لم يتم العثور على رقم هاتف في config.js!"));
+        console.log(chalk.red("❌ رقم الهاتف غير موجود في config.js!"));
       }
     }
 
@@ -144,7 +145,7 @@ export async function startBot() {
       if (connection === 'close') {
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         if (statusCode !== DisconnectReason.loggedOut) {
-            console.log(chalk.yellow("Connection closed. Reconnecting..."));
+            console.log(chalk.yellow("الارتباط انقطع.. جارٍ إعادة المحاولة..."));
             setTimeout(startBot, 5000);
         }
       }
