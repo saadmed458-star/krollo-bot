@@ -111,9 +111,9 @@ export async function startBot() {
       syncFullHistory: false
     });
 
-    // --- منطق طلب كود الربط الآلي لـ Render ---
+    // --- الحل النهائي لخطأ الـ TypeError ---
     if (!sock.authState.creds.registered) {
-      // إصلاح خطأ الـ replace بتحويل الرقم إلى String أولاً
+      // تحويل الرقم إلى String أولاً لتجنب مشكلة replace
       const phoneNumber = (config?.pairing?.phone || '').toString().replace(/[^0-9]/g, '');
       const pairingPassword = "ANASTASIA"; 
 
