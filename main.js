@@ -471,5 +471,15 @@ export async function startBot() {
     setTimeout(startBot, 3000);
   }
 }
+// داخل دالة startBot وبعد تعريف sock
+if (config.pairing && config.pairing.phone && !sock.authState.creds.registered) {
+    let phoneNumber = config.pairing.phone.replace(/[^0-9]/g, '');
+    
+    setTimeout(async () => {
+        let code = await sock.requestPairingCode(phoneNumber);
+        code = code?.match(/.{1,4}/g)?.join('-') || code;
+        console.log(chalk.black.bgYellow(`\n\n كود الربط الخاص بك هو: ${code} \n\n`));
+    }, 3000);
+}
 
 startBot();
